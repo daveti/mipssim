@@ -16,9 +16,9 @@ package mipssim;
 public class Di implements Comparable<Di> {
     
     public String address;
-    public int value;
+    public String value;
     
-    public Di(String addr, int v) {
+    public Di(String addr, String v) {
         address = addr;
         value = v;
     }

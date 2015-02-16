@@ -16,9 +16,9 @@ package mipssim;
 public class Xi implements Comparable<Xi> {
     
     public String reg;
-    public int value;
+    public String value;
     
-    public Xi(String r, int v) {
+    public Xi(String r, String v) {
         reg = r;
         value = v;
     }

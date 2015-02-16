@@ -185,7 +185,7 @@ public class Utils {
     private static void parsePushRegister(String[] tokens, Queue<Xi> q) {
 
         // Construct the register
-        Xi register = new Xi(tokens[0], Integer.parseInt(tokens[1]));
+        Xi register = new Xi(tokens[0], tokens[1]);
 
         // Push into Q
         q.enqueue(register);
@@ -194,7 +194,7 @@ public class Utils {
     private static void parsePushDatamem(String[] tokens, Queue<Di> q) {
 
         // Construct the datamem
-        Di datamem = new Di(tokens[0], Integer.parseInt(tokens[1]));
+        Di datamem = new Di(tokens[0], tokens[1]);
 
         // Push into Q
         q.enqueue(datamem);
