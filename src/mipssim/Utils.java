@@ -32,7 +32,7 @@ public class Utils {
     private final static int instructionEnum = 1;
     private final static int registerEnum = 2;
     private final static int datamemEnum = 3;
-    private final static boolean debug = true;
+    private final static boolean debug = false;
 
     public final static String DELIMITER = ",";
 
