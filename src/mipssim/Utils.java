@@ -137,14 +137,14 @@ public class Utils {
                                 Queue<Di> dam) {
         
         System.out.println("STEP " + step + ":");
-        System.out.println("INM: " + inm);
-        System.out.println("INB: " + inb);
-        System.out.println("AIB: " + aib);
-        System.out.println("LIB: " + lib);
-        System.out.println("ADB: " + adb);
-        System.out.println("REB: " + reb);
-        System.out.println("RGF: " + rgf.toStringSorted());
-        System.out.println("DAM: " + dam.toStringSorted());    
+        System.out.println("INM:" + inm);
+        System.out.println("INB:" + inb);
+        System.out.println("AIB:" + aib);
+        System.out.println("LIB:" + lib);
+        System.out.println("ADB:" + adb);
+        System.out.println("REB:" + reb);
+        System.out.println("RGF:" + rgf.toStringSorted());
+        System.out.println("DAM:" + dam.toStringSorted());    
     }
     
     public static Xi getRegister(String reg, Queue<Xi> rgf) {
@@ -176,7 +176,7 @@ public class Utils {
     private static void parsePushInstruction(String[] tokens, Queue<Ii> q) {
 
         // Construct the instruction
-        Ii instruction = new Ii(tokens[0], tokens[1], tokens[2], tokens[3]);
+        Ii instruction = new Ii(tokens[0], tokens[1], tokens[2], tokens[3], 0);
 
         // Push into Q
         q.enqueue(instruction);
@@ -185,7 +185,7 @@ public class Utils {
     private static void parsePushRegister(String[] tokens, Queue<Xi> q) {
 
         // Construct the register
-        Xi register = new Xi(tokens[0], tokens[1]);
+        Xi register = new Xi(tokens[0], tokens[1], 0);
 
         // Push into Q
         q.enqueue(register);
@@ -194,7 +194,7 @@ public class Utils {
     private static void parsePushDatamem(String[] tokens, Queue<Di> q) {
 
         // Construct the datamem
-        Di datamem = new Di(tokens[0], tokens[1]);
+        Di datamem = new Di(tokens[0], tokens[1], 0);
 
         // Push into Q
         q.enqueue(datamem);

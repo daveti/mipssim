@@ -19,12 +19,14 @@ public class Ii {
     public String targetReg;
     public String sourceReg;
     public String source2nd;   // Reg for ADD/SUB but immediate value for LD
+    public int clock;
     
-    public Ii(String op, String tarReg, String srcReg, String src2nd) {
+    public Ii(String op, String tarReg, String srcReg, String src2nd, int clk) {
         opcode = op;
         targetReg = tarReg;
         sourceReg = srcReg;
         source2nd = src2nd;
+        clock = clk;
     }
     
     @Override

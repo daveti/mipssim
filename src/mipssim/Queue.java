@@ -138,7 +138,12 @@ public class Queue<Item> implements Iterable<Item> {
         for (Item item : this) {
             s.append(item).append(",");
         }
-        return s.toString();
+        
+        String str = s.toString();
+        if (str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, str.length()-1);
     }
     
     public ArrayList<Item> toArrayList() {
@@ -169,7 +174,11 @@ public class Queue<Item> implements Iterable<Item> {
             s.append(item).append(",");
         }
         
-        return s.toString();
+        String str = s.toString();
+        if (str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, str.length()-1);
     }
 
     /**

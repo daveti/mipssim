@@ -17,10 +17,12 @@ public class Xi implements Comparable<Xi> {
     
     public String reg;
     public String value;
+    public int clock;
     
-    public Xi(String r, String v) {
+    public Xi(String r, String v, int clk) {
         reg = r;
         value = v;
+        clock = clk;
     }
     
     @Override

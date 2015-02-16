@@ -18,6 +18,8 @@ public class Transitions {
     private final static String instructionAdd = "ADD";
     private final static String instructionSub = "SUB";
     private final static String instructionLd = "LD";
+    private final static boolean debug = false;
+    private static int clock;
 
     private static void decode() {
 
@@ -75,9 +77,9 @@ public class Transitions {
         // Decode & Read => INB
         Ii newIi;
         if (isLd) {
-            newIi = new Ii(ins.opcode, ins.targetReg, x1.value, ins.source2nd);
+            newIi = new Ii(ins.opcode, ins.targetReg, x1.value, ins.source2nd, clock+1);
         } else {
-            newIi = new Ii(ins.opcode, ins.targetReg, x1.value, x2.value);
+            newIi = new Ii(ins.opcode, ins.targetReg, x1.value, x2.value, clock+1);
         }
         inm.dequeue();
         inb.enqueue(newIi);
@@ -94,12 +96,17 @@ public class Transitions {
         
         // Check the first instruction
         Ii ins = inb.peek();
-        if (ins.opcode == null ? instructionLd != null : !ins.opcode.equals(instructionLd)) {
+        if (ins.clock > clock) {
+            return false;
+        }
+        // Only handle the Add/Sub
+        if (ins.opcode == null ? instructionLd == null : ins.opcode.equals(instructionLd)) {
             return false;
         }
         
         // INB => AIB
         ins = inb.dequeue();
+        ins.clock = clock+1;
         aib.enqueue(ins);
         
         return true;
@@ -114,12 +121,17 @@ public class Transitions {
 
         // Check the first instruction
         Ii ins = inb.peek();
-        if (ins.opcode == null ? instructionLd == null : ins.opcode.equals(instructionLd)) {
+        if (ins.clock > clock) {
+            return false;
+        }
+        // Only handle Ld
+        if (ins.opcode == null ? instructionLd != null : !ins.opcode.equals(instructionLd)) {
             return false;
         }
         
         // INB => LIB
         ins = inb.dequeue();
+        ins.clock = clock+1;
         lib.enqueue(ins);
         
         return true;
@@ -132,11 +144,17 @@ public class Transitions {
             return false;
         }
         
+        // Check the first instruction
+        Ii ins = lib.peek();
+        if (ins.clock > clock) {
+            return false;
+        }
+        
         // LIB => ADB
-        Ii ins = lib.dequeue();
+        ins = lib.dequeue();
         String targetReg = ins.targetReg;
         String address = (new Integer(Integer.parseInt(ins.sourceReg) + Integer.parseInt(ins.source2nd))).toString();
-        Xi newX = new Xi(targetReg, address);
+        Xi newX = new Xi(targetReg, address, clock+1);
         adb.enqueue(newX);
         
         return true;
@@ -149,8 +167,14 @@ public class Transitions {
             return false;
         }
         
+        // Check the first instruction
+        Ii ins = aib.peek();
+        if (ins.clock > clock) {
+            return false;
+        }
+        
         // AIB => REB
-        Ii ins = aib.dequeue();
+        ins = aib.dequeue();
         String targetReg = ins.targetReg;
         int result;
         switch (ins.opcode) {
@@ -166,7 +190,8 @@ public class Transitions {
                 System.out.println("Error - unsupported opcode=" + ins.opcode);
                 return false;
         }
-        Xi newX = new Xi(targetReg, (new Integer(result)).toString());
+        Xi newX = new Xi(targetReg, (new Integer(result)).toString(), clock+1);
+        reb.enqueue(newX);
         
         return true;
     }
@@ -178,8 +203,14 @@ public class Transitions {
             return false;
         }
         
+        // Check the first reg
+        Xi x = adb.peek();
+        if (x.clock > clock) {
+            return false;
+        }
+        
         // ADB + DAM => REB
-        Xi x = adb.dequeue();
+        x = adb.dequeue();
         String address = x.value;
         Di d = Utils.getDatamem(address, dam);
         if (d == null) {
@@ -187,7 +218,7 @@ public class Transitions {
             return false;
         }
         String newValue = d.value;
-        Xi newX = new Xi(x.reg, newValue);
+        Xi newX = new Xi(x.reg, newValue, clock+1);
         reb.enqueue(newX);
         
         return true;
@@ -200,8 +231,14 @@ public class Transitions {
             return false;
         }
         
+        // Check the first reg
+        Xi x = reb.peek();
+        if (x.clock > clock) {
+            return false;
+        }
+        
         // REB => RGF
-        Xi x = reb.dequeue();
+        x = reb.dequeue();
         Xi xEx = Utils.getRegister(x.reg, rgf);
         if (xEx != null) {
             // Update the existing reg
@@ -216,20 +253,23 @@ public class Transitions {
 
     /**
      *
+     * @param clk
      * @param inm
      * @param inb
-     * @param lib
      * @param aib
+     * @param lib
      * @param adb
      * @param reb
      * @param rgf
      * @param dam
      * @return
      */
-    public static boolean simulation(Queue<Ii> inm, Queue<Ii> inb, Queue<Ii> lib,
-                                    Queue<Ii> aib, Queue<Xi> adb, Queue<Xi> reb,
+    public static boolean simulation(int clk,
+                                    Queue<Ii> inm, Queue<Ii> inb, Queue<Ii> aib,
+                                    Queue<Ii> lib, Queue<Xi> adb, Queue<Xi> reb,
                                     Queue<Xi> rgf, Queue<Di> dam) {
 
+        clock = clk;
         boolean hasTrans = false;
         boolean ret;
         
@@ -238,9 +278,21 @@ public class Transitions {
             hasTrans = true;
         }
         
+        if (debug) {
+            System.out.println("Debug: start after decodeAndRead");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after decodeAndRead");
+        }
+        
         ret = issue1(inb, aib);
         if (ret) {
             hasTrans = true;
+        }
+        
+        if (debug) {
+            System.out.println("Debug: start after issue1");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after issue1");
         }
         
         ret = issue2(inb, lib);
@@ -248,17 +300,37 @@ public class Transitions {
             hasTrans = true;
         }
         
+        if (debug) {
+            System.out.println("Debug: start after issue2");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after issue2");
+        }
+        
         // NOTE: do not care about write-after-write for REB
         // which means we do not care about the race condition
         // happened between load and asu...
+        /*
         ret = asu(aib, reb);
         if (ret) {
             hasTrans = true;
         }
         
+        if (debug) {
+            System.out.println("Debug: start after asu");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after asu");
+        }
+        */
+        
         ret = addr(lib, adb);
         if (ret) {
             hasTrans = true;
+        }
+        
+        if (debug) {
+            System.out.println("Debug: start after addr");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after addr");
         }
         
         ret = load(adb, dam, reb);
@@ -266,9 +338,34 @@ public class Transitions {
             hasTrans = true;
         }
         
+        if (debug) {
+            System.out.println("Debug: start after load");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after load");
+        }
+        
+        // According to the correct-simulation
+        // When race condition happens, LOAD happens before ASU
+        ret = asu(aib, reb);
+        if (ret) {
+            hasTrans = true;
+        }
+        
+        if (debug) {
+            System.out.println("Debug: start after asu");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after asu");
+        }
+        
         ret = write(reb, rgf);
         if (ret) {
             hasTrans = true;
+        }
+        
+        if (debug) {
+            System.out.println("Debug: start after write");
+            Utils.stepDump(clk, inm, inb, aib, lib, adb, reb, rgf, dam);
+            System.out.println("Debug: end after write");
         }
         
         return hasTrans;

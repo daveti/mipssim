@@ -17,10 +17,12 @@ public class Di implements Comparable<Di> {
     
     public String address;
     public String value;
+    public int clock;
     
-    public Di(String addr, String v) {
+    public Di(String addr, String v, int clk) {
         address = addr;
         value = v;
+        clock = clk;
     }
     
     @Override

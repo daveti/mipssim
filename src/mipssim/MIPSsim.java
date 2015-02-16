@@ -53,10 +53,10 @@ public class MIPSsim {
         int step = 0;
         do {
             // Dump the Qs
-            Utils.stepDump(step, INM, INB, LIB, AIB, ADB, REB, RGF, DAM);
+            Utils.stepDump(step, INM, INB, AIB, LIB, ADB, REB, RGF, DAM);
             
             // Petri Net Model for a MIPS processor
-            hasTrans = Transitions.simulation(INM, INB, LIB, AIB, ADB, REB, RGF, DAM);
+            hasTrans = Transitions.simulation(step, INM, INB, AIB, LIB, ADB, REB, RGF, DAM);
             
             // Check if simulation is done
             if (hasTrans) {
